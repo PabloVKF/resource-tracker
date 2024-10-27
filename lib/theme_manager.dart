@@ -6,7 +6,7 @@ class ThemeManager {
   static final lightTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color.fromRGBO(206,193,141, 1),
+      seedColor: Colors.blueAccent,
       brightness: Brightness.light,
     ),
   );
@@ -14,7 +14,7 @@ class ThemeManager {
   static final darkTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color.fromRGBO(206,193,141, 1),
+      seedColor: Colors.blueAccent,
       brightness: Brightness.dark,
     ),
   );

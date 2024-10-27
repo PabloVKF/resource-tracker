@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:resource_tracker/models/registry_form_data.dart';
-import 'package:resource_tracker/services/resource_tracker_service.dart';
+import 'package:uuid/uuid.dart';
+
+import '../bloc/registry_bloc.dart';
+import '../bloc/registry_event.dart';
+import '../models/registry.dart';
+import '../models/registry_form_data.dart';
 
 class RegistryFormPage extends StatefulWidget {
+  final RegistryBloc bloc;
+
   const RegistryFormPage({
+    required this.bloc,
     super.key,
   });
 
@@ -15,7 +22,7 @@ class RegistryFormPage extends StatefulWidget {
 class _RegistryFormPageState extends State<RegistryFormPage> {
   final _formData = RegistryFormData();
   final _formkey = GlobalKey<FormState>();
-  TextEditingController _dateController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -33,8 +40,14 @@ class _RegistryFormPageState extends State<RegistryFormPage> {
         return;
       }
 
-      final Map<String, dynamic> json = _formData.toJson();
-      ResourceTrackerService().saveItem(json);
+      widget.bloc.add(AddRegistry(
+            Registry(
+              id: const Uuid().v4(),
+              name: _formData.name!,
+              value: _formData.value!,
+              date: _formData.date!,
+            ).toJson(),
+          ));
 
       Navigator.of(context).pop();
     } finally {
@@ -43,17 +56,16 @@ class _RegistryFormPageState extends State<RegistryFormPage> {
   }
 
   Future<void> _selectDate() async {
-    DateTime? _picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000),
-        lastDate: DateTime.now()
-    );
+        lastDate: DateTime.now());
 
-    if (_picked != null) {
+    if (picked != null) {
       setState(() {
-        _dateController.text = DateFormat('dd/MM/yyyy').format(_picked);
-        _formData.date = _picked;
+        _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
+        _formData.date = picked;
       });
     }
   }
@@ -86,10 +98,32 @@ class _RegistryFormPageState extends State<RegistryFormPage> {
                   vertical: 8,
                 ),
                 child: TextFormField(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Nome do regisrto*',
+                    hintText: 'Ex: Apto 102',
+                  ),
+                  validator: (String? text) {
+                    if (text == null || text.isEmpty) {
+                      return 'Campo obritgatório';
+                    }
+                    return null;
+                  },
+                  onChanged: (String text) {
+                    _formData.name = text.isEmpty ? null : text;
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: TextFormField(
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Valor da leitura (obrigatório)',
+                    labelText: 'Valor da leitura em m³ (obrigatório)',
                     hintText: 'Ex: 3045',
                   ),
                   validator: (String? text) {
